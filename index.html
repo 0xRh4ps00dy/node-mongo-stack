@@ -1,0 +1,516 @@
+<!-- Chosen Palette: Earthy Neutral -->
+<!-- Application Structure Plan: S'ha dissenyat una guia interactiva d'una sola pàgina amb una navegació superior fixa (sticky) per facilitar l'accés a les seccions clau: "Repte", "Arquitectura", "Configuració" i "Demo". Aquesta estructura, a diferència d'una presentació lineal, permet a l'usuari explorar els conceptes al seu ritme. La secció d'"Arquitectura" inclou un diagrama HTML interactiu on clicar cada component revela la seva descripció, reforçant-ne el rol. La secció de "Configuració" utilitza pestanyes per organitzar els nombrosos fitxers de codi (docker-compose, Dockerfile, nginx.conf), evitant una llarga i aclaparadora paret de text i facilitant la consulta de fitxers específics. Aquesta estructura està dissenyada per a l'exploració i la comprensió, no només per al consum passiu. -->
+<!-- Visualization & Content Choices: [Informació: Arquitectura Proposada (Slide 3); Objectiu: Organitzar i mostrar relacions entre serveis; Mètode: Diagrama interactiu (HTML/Tailwind/JS); Interacció: Clicar en un component (Nginx, Node) actualitza un panell d'informació amb la seva descripció; Justificació: Molt més didàctic que una llista estàtica, reforça visualment les connexions; Mètode: Vanilla JS.]; [Informació: Configuració (Slides 4-7); Objectiu: Organitzar múltiples fragments de codi; Mètode: Interfície de pestanyes (HTML/Tailwind/JS); Interacció: Clicar en una pestanya (ex: "docker-compose") mostra el codi corresponent; Justificació: Agrupa lògicament els fitxers de configuració, fent-los fàcils de trobar i comparar; Mètode: Vanilla JS.]; [Informació: Networking (Slide 6); Objectiu: Comparar codi correcte vs. incorrecte; Mètode: Comparació costat a costat (HTML/Grid); Justificació: Destaca visualment l'error comú de 'localhost'; Mètode: HTML/Tailwind.] -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!DOCTYPE html>
+<html lang="ca" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller Docker: Stack Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        .nav-link {
+            transition: color 0.2s, border-bottom-color 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #059669; /* emerald-600 */
+            border-bottom-color: #059669; /* emerald-600 */
+        }
+        .tab-btn {
+            transition: color 0.2s, border-bottom-color 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: #047857; /* emerald-700 */
+            border-bottom-color: #047857; /* emerald-700 */
+            font-weight: 600;
+        }
+        .arch-btn {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .arch-btn.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #059669; /* emerald-600 */
+        }
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased">
+
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <nav class="container mx-auto max-w-5xl px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="text-xl font-bold text-emerald-700">Taller Docker</div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#intro" class="nav-link py-5 px-2 text-stone-600 font-medium">Inici</a>
+                    <a href="#challenge" class="nav-link py-5 px-2 text-stone-600 font-medium">El Repte</a>
+                    <a href="#architecture" class="nav-link py-5 px-2 text-stone-600 font-medium">Arquitectura</a>
+                    <a href="#config" class="nav-link py-5 px-2 text-stone-600 font-medium">Configuració</a>
+                    <a href="#demo" class="nav-link py-5 px-2 text-stone-600 font-medium">Demo</a>
+                    <a href="#conclusion" class="nav-link py-5 px-2 text-stone-600 font-medium">Conclusions</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-stone-700 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="md:hidden hidden pb-4 space-y-2">
+                <a href="#intro" class="block nav-link px-3 py-2 text-stone-600 font-medium">Inici</a>
+                <a href="#challenge" class="block nav-link px-3 py-2 text-stone-600 font-medium">El Repte</a>
+                <a href="#architecture" class="block nav-link px-3 py-2 text-stone-600 font-medium">Arquitectura</a>
+                <a href="#config" class="block nav-link px-3 py-2 text-stone-600 font-medium">Configuració</a>
+                <a href="#demo" class="block nav-link px-3 py-2 text-stone-600 font-medium">Demo</a>
+                <a href="#conclusion" class="block nav-link px-3 py-2 text-stone-600 font-medium">Conclusions</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8 max-w-5xl space-y-16">
+
+        <section id="intro" class="pt-16 -mt-16 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-emerald-800 mb-4">Entorns de Desenvolupament Unificats amb Docker</h1>
+            <h2 class="text-2xl md:text-3xl font-light text-stone-700 mb-6">Migrant del LAMP clàssic a un Stack de Microserveis (JS + NoSQL)</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto">
+                Benvinguts! L'objectiu d'aquesta guia és aprendre a configurar un entorn local professional, replicable i aïllat utilitzant contenidors. Entendrem per què Docker és clau per als equips de desenvolupament moderns i com muntar un stack complet des de zero.
+            </p>
+        </section>
+
+        <section id="challenge" class="pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">El Repte: Què Necessitem?</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
+                Un equip de programadors necessita un entorn de proves local. El dolor habitual ("a mi em funciona!", "quina versió de Node tens?") es pot resoldre si l'entorn compleix aquests requisits:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-semibold mb-3 text-emerald-700">1. Unificat</h3>
+                    <p class="text-stone-600">Tothom a l'equip ha de tenir exactament les mateixes versions de programari (servidor, base de dades, llenguatge) per evitar conflictes.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-semibold mb-3 text-emerald-700">2. Aïllat</h3>
+                    <p class="text-stone-600">No volem instal·lar Node, Mongo o Nginx directament al nostre PC. L'entorn ha de ser autocontingut i fàcil de netejar.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-semibold mb-3 text-emerald-700">3. Stack Modern</h3>
+                    <p class="text-stone-600">Ha d'incloure un servidor web (proxy), un backend (app), una base de dades (NoSQL) i un gestor visual per a la BD.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">L'Arquitectura Proposada</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
+                Aquesta és l'arquitectura que muntarem. Cada caixa és un contenidor Docker independent que es comunica amb els altres a través d'una xarxa privada. Fes clic a cada component per entendre la seva funció.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div class="space-y-4">
+                    <div class="text-center mb-4">
+                        <span class="inline-block bg-white px-4 py-2 rounded-full shadow border font-medium text-stone-700">Usuari (Navegador)</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="btn-nginx" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center h-full flex flex-col justify-center">
+                            <span class="text-4xl">🔌</span>
+                            <h3 class="text-xl font-semibold mt-2 text-emerald-700">Nginx</h3>
+                            <p class="text-sm text-stone-500">(Port 80)</p>
+                        </div>
+                        <div id="btn-mongo_express" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center h-full flex flex-col justify-center">
+                            <span class="text-4xl">📊</span>
+                            <h3 class="text-xl font-semibold mt-2 text-emerald-700">Mongo Express</h3>
+                            <p class="text-sm text-stone-500">(Port 8081)</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="h-8 w-px bg-stone-300 md:hidden"></div>
+                        <div class="w-1/2 h-px bg-stone-300 hidden md:block"></div>
+                    </div>
+                    <div id="btn-node_app" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center">
+                        <span class="text-4xl">⚙️</span>
+                        <h3 class="text-xl font-semibold mt-2 text-emerald-700">Node.js</h3>
+                        <p class="text-sm text-stone-500">(Intern: 3000)</p>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="h-8 w-px bg-stone-300"></div>
+                    </div>
+                    <div id="btn-mongo_db" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center">
+                        <span class="text-4xl">📦</span>
+                        <h3 class="text-xl font-semibold mt-2 text-emerald-700">MongoDB</h3>
+                        <p class="text-sm text-stone-500">(Intern: 27017)</p>
+                    </div>
+                </div>
+
+                <div id="architecture-info" class="bg-white p-8 rounded-lg shadow-inner border border-stone-200 min-h-[300px] sticky top-24">
+                    <h3 id="arch-info-title" class="text-2xl font-semibold mb-4 text-emerald-800">Fes clic a un component</h3>
+                    <p id="arch-info-desc" class="text-stone-700 text-lg leading-relaxed">
+                        Selecciona un element de l'esquerra per veure la seva descripció detallada i com encaixa en el nostre stack.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="config" class="pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">La Configuració (El Codi)</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
+                Així és com organitzem el projecte i definim els serveis. Navega per les pestanyes per veure cada fitxer de configuració clau i el codi de l'aplicació.
+            </p>
+
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-stone-200">
+                <div class="border-b border-stone-200">
+                    <nav id="config-tabs" class="flex flex-wrap -mb-px px-4 pt-2">
+                        <button class="tab-btn active text-stone-600 py-4 px-5" data-target="tab-structure">Estructura del Projecte</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-compose">docker-compose.yml</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-app">App (Node.js)</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-proxy">Proxy (Nginx)</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-networking">Networking</button>
+                    </nav>
+                </div>
+
+                <div class="p-6 md:p-10">
+                    <div id="tab-structure" class="tab-content">
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Estructura del Projecte</h3>
+                        <p class="text-stone-700 mb-6">Una bona organització és clau. Separem la configuració de la infraestructura (`nginx`, `docker-compose.yml`) del codi font de la nostra aplicació (`app`).</p>
+                        <pre><code>projecte/
+├── docker-compose.yml   &lt;-- El director d'orquestra
+├── nginx/
+│   └── default.conf     &lt;-- Configuració del proxy
+└── app/
+    ├── Dockerfile       &lt;-- Com es construeix la nostra app
+    ├── package.json     &lt;-- Llibreries JS
+    └── index.js         &lt;-- Codi font</code></pre>
+                    </div>
+
+                    <div id="tab-compose" class="tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">docker-compose.yml</h3>
+                        <p class="text-stone-700 mb-6">Aquest és el fitxer principal. Defineix els 4 serveis (contenidors) i com es connecten entre ells, quins ports exposen i quins volums utilitzen.</p>
+                        <pre><code>version: '3.8'
+
+services:
+  mongo_db:
+    image: mongo:latest
+    container_name: db_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+  mongo_express:
+    image: mongo-express:latest
+    container_name: db_client_web
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongo_db:27017/
+    depends_on:
+      - mongo_db
+    networks:
+      - app-network
+
+  node_app:
+    build: ./app
+    container_name: backend_node
+    restart: always
+    environment:
+      DB_HOST: mongo_db
+    depends_on:
+      - mongo_db
+    networks:
+      - app-network
+
+  webserver:
+    image: nginx:alpine
+    container_name: web_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - node_app
+    networks:
+      - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:
+    driver: bridge</code></pre>
+                    </div>
+
+                    <div id="tab-app" class="tab-content hidden space-y-8">
+                        <div>
+                            <h3 class="text-2xl font-semibold mb-4 text-emerald-700">App: Dockerfile</h3>
+                            <p class="text-stone-700 mb-6">Instruccions per construir la imatge del nostre contenidor Node.js.</p>
+                            <pre><code>FROM node:18-alpine
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["node", "index.js"]</code></pre>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold mb-4 text-emerald-700">App: index.js</h3>
+                            <p class="text-stone-700 mb-6">El codi font de l'aplicació. Fixa't en com es connecta a la BD utilitzant el nom del servei `mongo_db`.</p>
+                            <pre><code>const express = require('express');
+const mongoose = require('mongoose');
+
+const app = express();
+const port = 3000;
+
+const mongoUrl = 'mongodb://admin:password123@mongo_db:27017/test?authSource=admin';
+
+mongoose.connect(mongoUrl)
+  .then(() =&gt; console.log('Connectat a MongoDB!'))
+  .catch(err =&gt; console.error('Error de connexió:', err));
+
+app.get('/', (req, res) =&gt; {
+  res.send('&lt;h1&gt;Hola Equip!&lt;/h1&gt;&lt;p&gt;L\'aplicació Node funciona.&lt;/p&gt;');
+});
+
+app.listen(port, () =&gt; {
+  console.log(`App escoltant al port ${port}`);
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div id="tab-proxy" class="tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Proxy: nginx/default.conf</h3>
+                        <p class="text-stone-700 mb-6">La configuració de Nginx. Actua com a "Reverse Proxy": totes les peticions al port 80 es redirigeixen internament al contenidor `node_app` al port 3000.</p>
+                        <pre><code>server {
+    listen 80;
+
+    location / {
+        # 'node_app' és el nom del servei definit al docker-compose
+        proxy_pass http://node_app:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}</code></pre>
+                    </div>
+
+                    <div id="tab-networking" class="tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Networking: El Concepte Clau</h3>
+                        <p class="text-stone-700 mb-6">Aquest és l'error més comú. Dins d'un contenidor, `localhost` fa referència al *propi contenidor*, no a la teva màquina. Per connectar contenidors entre ells, fem servir el **nom del servei** definit al `docker-compose.yml`.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="border-2 border-red-400 rounded-lg bg-red-50 p-4">
+                                <h4 class="text-lg font-semibold text-red-700 mb-2">❌ Incorrecte</h4>
+                                <pre><code class="text-sm">const url = 'mongodb://localhost:27017/...'</code></pre>
+                                <p class="mt-2 text-red-600 text-sm">Això fallarà. El contenidor de Node buscarà una BD dins d'ell mateix, on no n'hi ha cap.</p>
+                            </div>
+                            <div class="border-2 border-emerald-400 rounded-lg bg-emerald-50 p-4">
+                                <h4 class="text-lg font-semibold text-emerald-700 mb-2">✅ Correcte</h4>
+                                <pre><code class="text-sm">const url = 'mongodb://mongo_db:27017/...'</code></pre>
+                                <p class="mt-2 text-emerald-600 text-sm">Docker resoldrà `mongo_db` a la IP interna del contenidor de la base de dades.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo" class="pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">Demo: Pas a Pas</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
+                Un cop tots els fitxers estan creats a les seves carpetes corresponents, només cal executar una comanda i validar que tot funciona.
+            </p>
+            <ol class="space-y-8 max-w-2xl mx-auto">
+                <li class="flex items-start space-x-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg">1</div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2 text-stone-800">Aixecar l'Entorn</h3>
+                        <p class="text-stone-700 mb-4">Obre un terminal a la carpeta arrel del projecte i executa:</p>
+                        <pre><code class="text-lg">$ docker-compose up --build -d</code></pre>
+                        <p class="text-stone-600 mt-2 text-sm">`--build` reconstrueix la imatge de Node si hi ha canvis. `-d` ho executa en segon pla.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg">2</div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2 text-stone-800">Validar l'Aplicació Web</h3>
+                        <p class="text-stone-700 mb-4">Obre el teu navegador i visita:</p>
+                        <pre><code class="text-lg">http://localhost</code></pre>
+                        <p class="text-stone-600 mt-2">Hauries de veure el missatge "Hola Equip!". Això confirma que Nginx i Node funcionen.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg">3</div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2 text-stone-800">Validar el Gestor de BD</h3>
+                        <p class="text-stone-700 mb-4">Ara, visita el port del gestor de base de dades:</p>
+                        <pre><code class="text-lg">http://localhost:8081</code></pre>
+                        <p class="text-stone-600 mt-2">Hauries de veure la interfície de Mongo Express. Pots entrar i crear bases de dades visualment.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section id="conclusion" class="pt-16 -mt-16 text-center">
+            <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">Conclusions</h2>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
+                Enhorabona! Amb uns pocs fitxers de configuració hem aconseguit:
+            </p>
+            <div class="max-w-md mx-auto text-left space-y-4">
+                <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
+                    <span class="text-emerald-500 mr-3">✔</span>
+                    <span class="text-stone-700">Un entorn complet en una sola comanda.</span>
+                </div>
+                <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
+                    <span class="text-emerald-500 mr-3">✔</span>
+                    <span class="text-stone-700">Un stack replicable per a tot l'equip.</span>
+                </div>
+                <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
+                    <span class="text-emerald-500 mr-3">✔</span>
+                    <span class="text-stone-700">Gestió de la base de dades via web inclosa.</span>
+                </div>
+                <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
+                    <span class="text-emerald-500 mr-3">✔</span>
+                    <span class="text-stone-700">La mateixa lògica serveix per a PHP, Python, o qualsevol altre llenguatge.</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-8 mt-16 border-t border-stone-200">
+        <p class="text-stone-500">Guia Interactiva creada a partir del Taller de Docker.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const archInfoData = {
+                nginx: {
+                    title: 'Nginx (Reverse Proxy)',
+                    desc: "Rep les peticions de l'usuari al port 80. Actua com a porta d'entrada i redirigeix el trànsit internament cap a l'aplicació Node.js. També pot servir fitxers estàtics (imatges, CSS) de forma molt eficient."
+                },
+                node_app: {
+                    title: 'Node.js (Backend)',
+                    desc: "És la nostra aplicació. Processa la lògica de negoci. Escolta al port intern 3000, protegit del món exterior. Només Nginx pot parlar amb ella. Es connecta a la base de dades MongoDB per llegir o escriure dades."
+                },
+                mongo_db: {
+                    title: 'MongoDB (Base de Dades)',
+                    desc: "Emmagatzema les dades de l'aplicació (usuaris, productes, etc.). S'executa al seu port intern estàndard i només és accessible des d'altres contenidors de la mateixa xarxa, com l'aplicació Node o el client web."
+                },
+                mongo_express: {
+                    title: 'Mongo Express (Gestor Web)',
+                    desc: "Un client web que ens permet administrar la base de dades MongoDB des del navegador. L'exposem al port 8081 perquè puguem accedir-hi per administrar i visualitzar les dades còmodament."
+                }
+            };
+
+            const archButtons = document.querySelectorAll('.arch-btn');
+            const archInfoTitle = document.getElementById('arch-info-title');
+            const archInfoDesc = document.getElementById('arch-info-desc');
+
+            archButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.id.replace('btn-', '');
+                    if (archInfoData[id]) {
+                        archInfoTitle.textContent = archInfoData[id].title;
+                        archInfoDesc.textContent = archInfoData[id].desc;
+
+                        archButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    }
+                });
+            });
+
+            const configTabs = document.getElementById('config-tabs');
+            const tabButtons = configTabs.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            configTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    const targetId = e.target.getAttribute('data-target');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        if (content.id === targetId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNavLinks = document.querySelectorAll('#mobile-menu .nav-link');
+            const sections = document.querySelectorAll('section');
+
+            function changeActiveLink() {
+                let index = sections.length;
+
+                while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
+                
+                navLinks.forEach((link) => link.classList.remove('active'));
+                mobileNavLinks.forEach((link) => link.classList.remove('active'));
+
+                const activeLink = document.querySelector(`.nav-link[href="#${sections[index].id}"]`);
+                const activeMobileLink = document.querySelector(`#mobile-menu .nav-link[href="#${sections[index].id}"]`);
+
+                if (activeLink) activeLink.classList.add('active');
+                if (activeMobileLink) activeMobileLink.classList.add('active');
+            }
+
+            changeActiveLink();
+            window.addEventListener('scroll', changeActiveLink);
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    if (mobileMenu.classList.contains('hidden') === false) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
