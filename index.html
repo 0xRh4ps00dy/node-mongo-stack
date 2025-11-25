@@ -1,6 +1,6 @@
 <!-- Chosen Palette: Earthy Neutral -->
-<!-- Application Structure Plan: S'ha dissenyat una guia interactiva d'una sola pàgina amb una navegació superior fixa (sticky) per facilitar l'accés a les seccions clau: "Repte", "Arquitectura", "Configuració" i "Demo". Aquesta estructura, a diferència d'una presentació lineal, permet a l'usuari explorar els conceptes al seu ritme. La secció d'"Arquitectura" inclou un diagrama HTML interactiu on clicar cada component revela la seva descripció, reforçant-ne el rol. La secció de "Configuració" utilitza pestanyes per organitzar els nombrosos fitxers de codi (docker-compose, Dockerfile, nginx.conf), evitant una llarga i aclaparadora paret de text i facilitant la consulta de fitxers específics. Aquesta estructura està dissenyada per a l'exploració i la comprensió, no només per al consum passiu. -->
-<!-- Visualization & Content Choices: [Informació: Arquitectura Proposada (Slide 3); Objectiu: Organitzar i mostrar relacions entre serveis; Mètode: Diagrama interactiu (HTML/Tailwind/JS); Interacció: Clicar en un component (Nginx, Node) actualitza un panell d'informació amb la seva descripció; Justificació: Molt més didàctic que una llista estàtica, reforça visualment les connexions; Mètode: Vanilla JS.]; [Informació: Configuració (Slides 4-7); Objectiu: Organitzar múltiples fragments de codi; Mètode: Interfície de pestanyes (HTML/Tailwind/JS); Interacció: Clicar en una pestanya (ex: "docker-compose") mostra el codi corresponent; Justificació: Agrupa lògicament els fitxers de configuració, fent-los fàcils de trobar i comparar; Mètode: Vanilla JS.]; [Informació: Networking (Slide 6); Objectiu: Comparar codi correcte vs. incorrecte; Mètode: Comparació costat a costat (HTML/Grid); Justificació: Destaca visualment l'error comú de 'localhost'; Mètode: HTML/Tailwind.] -->
+<!-- Application Structure Plan: S'ha unificat la secció de configuració per presentar directament la solució completa (amb Git Loader) sense passos intermedis. S'ha afegit una nova secció explícita per als scripts de base de dades (.js) per aclarir el format NoSQL. L'estructura general es manté: Repte -> Arquitectura -> Configuració Unificada -> Demo. -->
+<!-- Visualization & Content Choices: [Unificació: S'ha eliminat la pestanya separada de 'Càrrega Git' i s'ha integrat al docker-compose principal per simplificar la lectura; Nou contingut: S'ha afegit una pestanya 'Scripts BD' amb exemples de codi JavaScript per a MongoDB (db.createUser, db.collection.insert), responent directament a la pregunta de l'usuari sobre el format dels scripts.] -->
 <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="ca" class="scroll-smooth">
@@ -109,8 +109,8 @@
                     <p class="text-stone-600">No volem instal·lar Node, Mongo o Nginx directament al nostre PC. L'entorn ha de ser autocontingut i fàcil de netejar.</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-emerald-500">
-                    <h3 class="text-xl font-semibold mb-3 text-emerald-700">3. Stack Modern</h3>
-                    <p class="text-stone-600">Ha d'incloure un servidor web (proxy), un backend (app), una base de dades (NoSQL) i un gestor visual per a la BD.</p>
+                    <h3 class="text-xl font-semibold mb-3 text-emerald-700">3. Stack Modern + Càrrega de Dades</h3>
+                    <p class="text-stone-600">Ha d'incloure Proxy, App i BD, i a més, ha de ser capaç de <strong>descarregar i carregar dades automàticament</strong> des d'un repositori de GitHub a l'inici.</p>
                 </div>
             </div>
         </section>
@@ -118,7 +118,7 @@
         <section id="architecture" class="pt-16 -mt-16">
             <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">L'Arquitectura Proposada</h2>
             <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
-                Aquesta és l'arquitectura que muntarem. Cada caixa és un contenidor Docker independent que es comunica amb els altres a través d'una xarxa privada. Fes clic a cada component per entendre la seva funció.
+                Aquesta és l'arquitectura que muntarem. Hem afegit un servei "Loader" efímer que s'encarrega de portar les dades abans que arrenqui la base de dades.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 <div class="space-y-4">
@@ -149,10 +149,17 @@
                     <div class="flex justify-center">
                         <div class="h-8 w-px bg-stone-300"></div>
                     </div>
-                    <div id="btn-mongo_db" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center">
-                        <span class="text-4xl">📦</span>
-                        <h3 class="text-xl font-semibold mt-2 text-emerald-700">MongoDB</h3>
-                        <p class="text-sm text-stone-500">(Intern: 27017)</p>
+                    <div class="grid grid-cols-2 gap-4">
+                         <div id="btn-mongo_db" class="arch-btn bg-white p-6 rounded-lg shadow border-2 border-transparent text-center">
+                            <span class="text-4xl">📦</span>
+                            <h3 class="text-xl font-semibold mt-2 text-emerald-700">MongoDB</h3>
+                            <p class="text-sm text-stone-500">(Intern: 27017)</p>
+                        </div>
+                         <div id="btn-git_loader" class="arch-btn bg-emerald-50 p-6 rounded-lg shadow border-2 border-emerald-200 text-center">
+                            <span class="text-4xl">⬇️</span>
+                            <h3 class="text-xl font-semibold mt-2 text-emerald-700">Git Loader</h3>
+                            <p class="text-sm text-stone-500">(Init Container)</p>
+                        </div>
                     </div>
                 </div>
 
@@ -168,17 +175,17 @@
         <section id="config" class="pt-16 -mt-16">
             <h2 class="text-3xl font-bold text-center mb-10 text-stone-800">La Configuració (El Codi)</h2>
             <p class="text-lg text-stone-600 max-w-3xl mx-auto text-center mb-12">
-                Així és com organitzem el projecte i definim els serveis. Navega per les pestanyes per veure cada fitxer de configuració clau i el codi de l'aplicació.
+                Aquesta és la configuració definitiva que unifica l'stack web amb la càrrega automàtica de dades des d'un repositori extern.
             </p>
 
             <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-stone-200">
                 <div class="border-b border-stone-200">
                     <nav id="config-tabs" class="flex flex-wrap -mb-px px-4 pt-2">
-                        <button class="tab-btn active text-stone-600 py-4 px-5" data-target="tab-structure">Estructura del Projecte</button>
-                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-compose">docker-compose.yml</button>
-                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-app">App (Node.js)</button>
+                        <button class="tab-btn active text-stone-600 py-4 px-5" data-target="tab-structure">Estructura</button>
+                        <button class="tab-btn text-emerald-700 font-bold bg-emerald-50 border-b-2 border-emerald-500 py-4 px-5" data-target="tab-compose">docker-compose.yml</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-scripts">Scripts BD (.js)</button>
+                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-app">App (Node)</button>
                         <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-proxy">Proxy (Nginx)</button>
-                        <button class="tab-btn text-stone-600 py-4 px-5" data-target="tab-networking">Networking</button>
                     </nav>
                 </div>
 
@@ -187,7 +194,7 @@
                         <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Estructura del Projecte</h3>
                         <p class="text-stone-700 mb-6">Una bona organització és clau. Separem la configuració de la infraestructura (`nginx`, `docker-compose.yml`) del codi font de la nostra aplicació (`app`).</p>
                         <pre><code>projecte/
-├── docker-compose.yml   &lt;-- El director d'orquestra
+├── docker-compose.yml   &lt;-- Director d'orquestra (inclou Git Loader)
 ├── nginx/
 │   └── default.conf     &lt;-- Configuració del proxy
 └── app/
@@ -197,11 +204,21 @@
                     </div>
 
                     <div id="tab-compose" class="tab-content hidden">
-                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">docker-compose.yml</h3>
-                        <p class="text-stone-700 mb-6">Aquest és el fitxer principal. Defineix els 4 serveis (contenidors) i com es connecten entre ells, quins ports exposen i quins volums utilitzen.</p>
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">docker-compose.yml (Complet)</h3>
+                        <p class="text-stone-700 mb-4">Aquesta versió inclou el servei <code>git_loader</code>. Aquest servei s'executa primer, clona els scripts `.js` del teu repo de GitHub, i els passa a Mongo abans que aquest arrenqui.</p>
                         <pre><code>version: '3.8'
 
 services:
+  # --- 1. CARREGADOR DE DADES (Init Container) ---
+  git_loader:
+    image: alpine/git
+    container_name: db_seeder
+    # Clona el repo i copia els scripts .js a la carpeta compartida
+    command: sh -c "git clone https://github.com/teu-usuari/scripts-db.git /temp && cp /temp/*.js /init-data/"
+    volumes:
+      - db_init_files:/init-data  # Volum compartit
+
+  # --- 2. BASE DE DADES (MongoDB) ---
   mongo_db:
     image: mongo:latest
     container_name: db_mongo
@@ -211,9 +228,17 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password123
     volumes:
       - mongo_data:/data/db
+      # Muntem el volum on git_loader ha deixat els fitxers
+      # Mongo executarà automàticament qualsevol .js en aquesta carpeta
+      - db_init_files:/docker-entrypoint-initdb.d
+    depends_on:
+      git_loader:
+        # MÀGIA: Esperem que el loader acabi amb èxit abans d'arrencar
+        condition: service_completed_successfully
     networks:
       - app-network
 
+  # --- 3. GESTOR WEB (Mongo Express) ---
   mongo_express:
     image: mongo-express:latest
     container_name: db_client_web
@@ -229,6 +254,7 @@ services:
     networks:
       - app-network
 
+  # --- 4. APLICACIÓ (Node.js) ---
   node_app:
     build: ./app
     container_name: backend_node
@@ -240,6 +266,7 @@ services:
     networks:
       - app-network
 
+  # --- 5. SERVIDOR WEB (Nginx) ---
   webserver:
     image: nginx:alpine
     container_name: web_nginx
@@ -255,10 +282,44 @@ services:
 
 volumes:
   mongo_data:
+  db_init_files: # Volum temporal per passar scripts
 
 networks:
   app-network:
     driver: bridge</code></pre>
+                    </div>
+
+                    <div id="tab-scripts" class="tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Com són els Scripts? (.js)</h3>
+                        <p class="text-stone-700 mb-6">A diferència de SQL (`INSERT INTO...`), MongoDB utilitza **JavaScript** per a la inicialització. Els fitxers que pugis al teu repositori de GitHub (ex: `seed.js`) han de tenir aquest format:</p>
+                        
+                        <div class="bg-stone-800 text-stone-100 p-4 rounded-lg mb-6">
+                            <h4 class="text-emerald-400 font-mono text-sm mb-2">// fitxer: seed.js</h4>
+                            <pre class="bg-stone-900 border-none p-0 text-sm"><code class="text-stone-300">// 1. Seleccionem o creem la base de dades 'mi_app'
+db = db.getSiblingDB('mi_app');
+
+// 2. Creem una col·lecció i hi inserim dades inicials
+db.usuaris.insertMany([
+    {
+        nom: "Joan",
+        rol: "admin",
+        actiu: true,
+        data_creacio: new Date()
+    },
+    {
+        nom: "Anna",
+        rol: "editor",
+        actiu: true,
+        data_creacio: new Date()
+    }
+]);
+
+// 3. Podem crear índexs per millorar el rendiment
+db.usuaris.createIndex({ "nom": 1 });
+
+print("--> Dades inicials carregades correctament!");</code></pre>
+                        </div>
+                        <p class="text-stone-700 text-sm">Quan el contenidor `mongo_db` arrenca per primera vegada, busca fitxers `.js` a `/docker-entrypoint-initdb.d/` (on els hem copiat amb el Git Loader) i els executa en ordre alfabètic.</p>
                     </div>
 
                     <div id="tab-app" class="tab-content hidden space-y-8">
@@ -273,29 +334,6 @@ COPY . .
 EXPOSE 3000
 CMD ["node", "index.js"]</code></pre>
                         </div>
-                        <div>
-                            <h3 class="text-2xl font-semibold mb-4 text-emerald-700">App: index.js</h3>
-                            <p class="text-stone-700 mb-6">El codi font de l'aplicació. Fixa't en com es connecta a la BD utilitzant el nom del servei `mongo_db`.</p>
-                            <pre><code>const express = require('express');
-const mongoose = require('mongoose');
-
-const app = express();
-const port = 3000;
-
-const mongoUrl = 'mongodb://admin:password123@mongo_db:27017/test?authSource=admin';
-
-mongoose.connect(mongoUrl)
-  .then(() =&gt; console.log('Connectat a MongoDB!'))
-  .catch(err =&gt; console.error('Error de connexió:', err));
-
-app.get('/', (req, res) =&gt; {
-  res.send('&lt;h1&gt;Hola Equip!&lt;/h1&gt;&lt;p&gt;L\'aplicació Node funciona.&lt;/p&gt;');
-});
-
-app.listen(port, () =&gt; {
-  console.log(`App escoltant al port ${port}`);
-});</code></pre>
-                        </div>
                     </div>
 
                     <div id="tab-proxy" class="tab-content hidden">
@@ -305,7 +343,6 @@ app.listen(port, () =&gt; {
     listen 80;
 
     location / {
-        # 'node_app' és el nom del servei definit al docker-compose
         proxy_pass http://node_app:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -316,22 +353,6 @@ app.listen(port, () =&gt; {
 }</code></pre>
                     </div>
 
-                    <div id="tab-networking" class="tab-content hidden">
-                        <h3 class="text-2xl font-semibold mb-4 text-emerald-700">Networking: El Concepte Clau</h3>
-                        <p class="text-stone-700 mb-6">Aquest és l'error més comú. Dins d'un contenidor, `localhost` fa referència al *propi contenidor*, no a la teva màquina. Per connectar contenidors entre ells, fem servir el **nom del servei** definit al `docker-compose.yml`.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="border-2 border-red-400 rounded-lg bg-red-50 p-4">
-                                <h4 class="text-lg font-semibold text-red-700 mb-2">❌ Incorrecte</h4>
-                                <pre><code class="text-sm">const url = 'mongodb://localhost:27017/...'</code></pre>
-                                <p class="mt-2 text-red-600 text-sm">Això fallarà. El contenidor de Node buscarà una BD dins d'ell mateix, on no n'hi ha cap.</p>
-                            </div>
-                            <div class="border-2 border-emerald-400 rounded-lg bg-emerald-50 p-4">
-                                <h4 class="text-lg font-semibold text-emerald-700 mb-2">✅ Correcte</h4>
-                                <pre><code class="text-sm">const url = 'mongodb://mongo_db:27017/...'</code></pre>
-                                <p class="mt-2 text-emerald-600 text-sm">Docker resoldrà `mongo_db` a la IP interna del contenidor de la base de dades.</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -348,7 +369,7 @@ app.listen(port, () =&gt; {
                         <h3 class="text-2xl font-semibold mb-2 text-stone-800">Aixecar l'Entorn</h3>
                         <p class="text-stone-700 mb-4">Obre un terminal a la carpeta arrel del projecte i executa:</p>
                         <pre><code class="text-lg">$ docker-compose up --build -d</code></pre>
-                        <p class="text-stone-600 mt-2 text-sm">`--build` reconstrueix la imatge de Node si hi ha canvis. `-d` ho executa en segon pla.</p>
+                        <p class="text-stone-600 mt-2 text-sm">Docker baixarà el repositori Git automàticament abans d'iniciar la base de dades.</p>
                     </div>
                 </li>
                 <li class="flex items-start space-x-6">
@@ -366,7 +387,7 @@ app.listen(port, () =&gt; {
                         <h3 class="text-2xl font-semibold mb-2 text-stone-800">Validar el Gestor de BD</h3>
                         <p class="text-stone-700 mb-4">Ara, visita el port del gestor de base de dades:</p>
                         <pre><code class="text-lg">http://localhost:8081</code></pre>
-                        <p class="text-stone-600 mt-2">Hauries de veure la interfície de Mongo Express. Pots entrar i crear bases de dades visualment.</p>
+                        <p class="text-stone-600 mt-2">Si tot ha anat bé, veuràs les dades creades pels scripts del repositori.</p>
                     </div>
                 </li>
             </ol>
@@ -384,15 +405,11 @@ app.listen(port, () =&gt; {
                 </div>
                 <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
                     <span class="text-emerald-500 mr-3">✔</span>
-                    <span class="text-stone-700">Un stack replicable per a tot l'equip.</span>
+                    <span class="text-stone-700">Automatisme total: <code>git clone</code> integrat al <code>docker-compose</code>.</span>
                 </div>
                 <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
                     <span class="text-emerald-500 mr-3">✔</span>
                     <span class="text-stone-700">Gestió de la base de dades via web inclosa.</span>
-                </div>
-                <div class="flex items-center text-lg bg-white p-4 rounded-lg shadow">
-                    <span class="text-emerald-500 mr-3">✔</span>
-                    <span class="text-stone-700">La mateixa lògica serveix per a PHP, Python, o qualsevol altre llenguatge.</span>
                 </div>
             </div>
         </section>
@@ -422,6 +439,10 @@ app.listen(port, () =&gt; {
                 mongo_express: {
                     title: 'Mongo Express (Gestor Web)',
                     desc: "Un client web que ens permet administrar la base de dades MongoDB des del navegador. L'exposem al port 8081 perquè puguem accedir-hi per administrar i visualitzar les dades còmodament."
+                },
+                git_loader: {
+                    title: 'Git Loader (Init Container)',
+                    desc: "Un contenidor 'màgic' que s'executa només una vegada a l'inici. La seva única feina és clonar el repositori de dades de GitHub i col·locar els scripts a una carpeta compartida. Després de fer-ho, s'apaga i deixa pas a la base de dades."
                 }
             };
 
