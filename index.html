@@ -1,7 +1,3 @@
-<!-- Chosen Palette: Earthy Neutral -->
-<!-- Application Structure Plan: S'ha unificat la secció de configuració per presentar directament la solució completa (amb Git Loader) sense passos intermedis. S'ha afegit una nova secció explícita per als scripts de base de dades (.js) per aclarir el format NoSQL. L'estructura general es manté: Repte -> Arquitectura -> Configuració Unificada -> Demo. -->
-<!-- Visualization & Content Choices: [Unificació: S'ha eliminat la pestanya separada de 'Càrrega Git' i s'ha integrat al docker-compose principal per simplificar la lectura; Nou contingut: S'ha afegit una pestanya 'Scripts BD' amb exemples de codi JavaScript per a MongoDB (db.createUser, db.collection.insert), responent directament a la pregunta de l'usuari sobre el format dels scripts.] -->
-<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="ca" class="scroll-smooth">
 <head>
@@ -199,7 +195,7 @@
 │   └── default.conf     &lt;-- Configuració del proxy
 └── app/
     ├── Dockerfile       &lt;-- Com es construeix la nostra app
-    ├── package.json     &lt;-- Llibreries JS
+    ├── package.json     &lt;-- Dependències
     └── index.js         &lt;-- Codi font</code></pre>
                     </div>
 
@@ -333,6 +329,43 @@ RUN npm install
 COPY . .
 EXPOSE 3000
 CMD ["node", "index.js"]</code></pre>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold mb-4 text-emerald-700">App: package.json</h3>
+                            <p class="text-stone-700 mb-6">Defineix les dependències del projecte. Necessitem <code>express</code> per al servidor web i <code>mongoose</code> per parlar amb la base de dades.</p>
+                            <pre><code>{
+  "name": "demo-docker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.3"
+  }
+}</code></pre>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold mb-4 text-emerald-700">App: index.js</h3>
+                            <p class="text-stone-700 mb-6">El codi de l'aplicació. Fixa't que connectem a <code>mongo_db</code> (el nom del servei al docker-compose) i no a localhost.</p>
+                            <pre><code>const express = require('express');
+const mongoose = require('mongoose');
+
+const app = express();
+const port = 3000;
+
+// URL de connexió utilitzant el nom del servei Docker
+const mongoUrl = 'mongodb://admin:password123@mongo_db:27017/test?authSource=admin';
+
+mongoose.connect(mongoUrl)
+  .then(() => console.log('Connectat a MongoDB!'))
+  .catch(err => console.error('Error de connexió:', err));
+
+app.get('/', (req, res) => {
+  res.send('&lt;h1&gt;Hola Equip!&lt;/h1&gt;&lt;p&gt;L\'aplicació Node funciona darrere de Nginx.&lt;/p&gt;');
+});
+
+app.listen(port, () => {
+  console.log(`App escoltant al port ${port}`);
+});</code></pre>
                         </div>
                     </div>
 
