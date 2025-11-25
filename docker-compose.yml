@@ -5,10 +5,9 @@ services:
   git_loader:
     image: alpine/git
     container_name: db_seeder
-    # Clona el repo i copia els scripts .js a la carpeta compartida
     command: sh -c "git clone https://github.com/0xRh4ps00dy/scripts-db /temp && cp /temp/*.js /init-data/"
     volumes:
-      - db_init_files:/init-data  # Volum compartit
+      - db_init_files:/init-data
 
   # --- 2. BASE DE DADES (MongoDB) ---
   mongo_db:
@@ -20,12 +19,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password123
     volumes:
       - mongo_data:/data/db
-      # Muntem el volum on git_loader ha deixat els fitxers
-      # Mongo executarà automàticament qualsevol .js en aquesta carpeta
       - db_init_files:/docker-entrypoint-initdb.d
     depends_on:
       git_loader:
-        # MÀGIA: Esperem que el loader acabi amb èxit abans d'arrencar
         condition: service_completed_successfully
     networks:
       - app-network
