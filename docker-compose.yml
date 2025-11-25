@@ -5,7 +5,11 @@ services:
   git_loader:
     image: alpine/git
     container_name: db_seeder
-    command: sh -c "git clone https://github.com/0xRh4ps00dy/scripts-db /temp && cp /temp/*.js /init-data/"
+    entrypoint: []
+    command: 
+      - /bin/sh
+      - -c
+      - "git clone https://github.com/0xRh4ps00dy/scripts-db /temp && cp /temp/*.js /init-data/"
     volumes:
       - db_init_files:/init-data
 
@@ -37,6 +41,8 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: password123
       ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongo_db:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password123
     depends_on:
       - mongo_db
     networks:
